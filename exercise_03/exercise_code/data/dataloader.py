@@ -44,7 +44,38 @@ class DataLoader:
         #     in section 1 of the notebook.                                    #
         ########################################################################
 
-        pass
+        def combine_batch_dicts(batch):
+            batch_dict = {}
+            for data_dict in batch:
+                for key, value in data_dict.items():
+                    if key not in batch_dict:
+                        batch_dict[key] = []
+                    batch_dict[key].append(value)
+            return batch_dict
+        
+        def batch_to_numpy(batch):
+            numpy_batch = {}
+            for key, value in batch.items():
+                numpy_batch[key] = np.array(value)
+            return numpy_batch
+
+        length_dataset = len(self.dataset)
+        
+        if self.shuffle:
+            index_iterator = iter(np.random.permutation(length_dataset))  # define indices as iterator
+        else:
+            index_iterator = iter(range(length_dataset))  # define indices as iterator
+
+        batch = []
+        for i, index in enumerate(index_iterator):  # iterate over indices using the iterator
+            if (self.drop_last and (length_dataset % self.batch_size != 0) and 
+                        ((length_dataset - i) < self.batch_size)):
+                break
+            
+            batch.append(self.dataset[index])
+            if (len(batch) == self.batch_size) or ((not self.drop_last) and (i==(length_dataset-1))):
+                yield batch_to_numpy(combine_batch_dicts(batch))  # use yield keyword to define a iterable generator
+                batch = []
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -59,7 +90,12 @@ class DataLoader:
         # Don't forget to check for drop last!                                 #
         ########################################################################
 
-        pass
+        length_dataset = len(self.dataset)
+        
+        if (self.drop_last or (length_dataset % self.batch_size == 0)):
+            length = length_dataset // self.batch_size
+        else:
+            length = (length_dataset // self.batch_size) + 1
 
         ########################################################################
         #                           END OF YOUR CODE                           #

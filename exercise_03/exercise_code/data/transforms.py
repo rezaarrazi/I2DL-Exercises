@@ -30,7 +30,7 @@ class RescaleTransform:
         # "convert-a-number-range-to-another-range-maintaining-ratio"          #
         ########################################################################
 
-        pass
+        images = ((images - self._data_min) / (self._data_max - self._data_min)) * (self.max - self.min) + self.min
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -57,7 +57,8 @@ def compute_image_mean_and_std(images):
     # test yourself.                                                       #
     ########################################################################
 
-    pass
+    mean = np.mean(images, axis=tuple(range(images.ndim-1)))
+    std = np.std(images, axis=tuple(range(images.ndim-1)))
 
     ########################################################################
     #                           END OF YOUR CODE                           #
@@ -91,8 +92,13 @@ class NormalizeTransform:
         #   - divide by standard deviation                                     #
         ########################################################################
 
-        pass
-
+        if isinstance(self.mean, np.ndarray) and isinstance(self.std, np.ndarray):
+            images[:,:,0] = (images[:,:,0] - self.mean[0])/self.std[0]
+            images[:,:,1] = (images[:,:,1] - self.mean[1])/self.std[1]
+            images[:,:,2] = (images[:,:,2] - self.mean[2])/self.std[2]
+        else:
+            images = (images - self.mean)/self.std
+        
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
