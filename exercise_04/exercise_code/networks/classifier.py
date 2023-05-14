@@ -57,12 +57,16 @@ class Classifier(Network):
         # Also, save in self.cache an array of all the relevant variables that #
         # you will need to use in the backward() function. E.g.: (X, ...)      #
         ########################################################################
+        logits = np.dot(X, self.W)
+        y = self.sigmoid(logits)
 
+        # Save the necessary variables in cache for the backward pass
+        self.cache = (X, logits, y)
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
 
-        return z 
+        return y
 
     def backward(self, dout):
         """
@@ -90,7 +94,15 @@ class Classifier(Network):
         # Hint 2: Remember that the derivative of sigmoid(x) is independent of #
         # x, and could be calculated with the result from the forward pass.    #
         ########################################################################
+        
+        X, logits, y = self.cache
+        
+        # Calculate the derivative of the sigmoid function
+        dsigmoid = y * (1 - y)
 
+        # Calculate the gradient with respect to W
+        dW = np.dot(X.T, dout * dsigmoid)
+        
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
@@ -110,7 +122,7 @@ class Classifier(Network):
         # Implement the sigmoid function over the input x. Return "out".       #
         # Note: The sigmoid() function operates element-wise.                  #
         ########################################################################
-
+        out = 1 / (1 + np.exp(-x))
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################

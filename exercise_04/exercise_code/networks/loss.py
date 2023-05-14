@@ -120,12 +120,17 @@ class BCE(Loss):
         #   Have a look at the school implementation of the L1 (MAE) and the   #
         #   MSE loss, and observe how the individual losses are dealt with.    #
         ########################################################################
+        y_out = np.clip(y_out, 1e-7, 1 - 1e-7)
 
+        # compute the binary cross-entropy loss for each sample
+        result = -(y_truth * np.log(y_out) + (1 - y_truth) * np.log(1 - y_out))
+        
+        if individual_losses:
+            return result
+        return np.mean(result)
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
-
-        return result
 
     def backward(self, y_out, y_truth):
         """
@@ -147,8 +152,10 @@ class BCE(Loss):
         #   Don't forget to divide by N, which is the number of samples in     #
         #   the batch. It is crucial for the magnitude of the gradient.        #
         ########################################################################
+        y_out = np.clip(y_out, 1e-7, 1 - 1e-7)  # to avoid division by 0
 
+        gradient = (y_out - y_truth) / (y_out * (1 - y_out))
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
-        return gradient
+        return gradient / len(y_out)

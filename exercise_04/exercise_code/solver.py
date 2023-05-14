@@ -102,7 +102,21 @@ class Solver(object):
         #   Hint 2: Don't forget the order of operations: forward, loss,       #
         #   backward.                                                          #
         ########################################################################
+        # Enable your model to store the gradient.
+        model.train()
+        
+        # Compute the output and gradients w.r.t weights of your model for the input dataset.
+        model_forward = model.forward(X_train)
+        
+        # Compute the loss and gradients w.r.t output of the model. The begining of the chain rule.
+        loss = loss_func(model_forward, y_train)
+        loss_grad = loss_func.backward(model_forward, y_train)
 
+        # Send the upstream derivative to continue the chain rule.
+        grad = model.backward(loss_grad)
+        
+        opt.step(grad)
+            
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
