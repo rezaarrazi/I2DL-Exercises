@@ -26,7 +26,11 @@ class MyPytorchModel(nn.Module):
         ########################################################################
 
 
-        pass
+        self.model = nn.Sequential(
+            nn.Linear(self.hparams["input_size"], self.hparams["hidden_size"]),
+            nn.ReLU(),
+            nn.Linear(self.hparams["hidden_size"], self.hparams["num_classes"])
+        )
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -92,7 +96,12 @@ class MyPytorchModel(nn.Module):
         ########################################################################
 
 
-        pass
+        learning_rate = self.hparams.get("learning_rate")
+        # weight_decay = self.hparams.get("weight_decay")
+        # optim = torch.optim.Adam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        # stepLR = torch.optim.lr_scheduler.MultiStepLR(optim, milestones=[30], gamma=0.5)
+
+        optim = torch.optim.SGD(self.model.parameters(), learning_rate, momentum=0.9)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -143,15 +152,20 @@ class CIFAR10DataModule(nn.Module):
         # TODO: Define your transforms (convert to tensors, normalize).        #
         # If you want, you can also perform data augmentation!                 #
         ########################################################################
-
-        pass
+        # transforms.RandomApply((transforms.RandomHorizontalFlip(p=0.8),
+        #                                                           transforms.RandomResizedCrop((32,32))), p=0.1)
+        my_transform = transforms.Compose([transforms.ToTensor(), 
+                                            transforms.Normalize(mean, std),
+                                            transforms.RandomCrop(32, padding=4)])
 
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
         
         # Make sure to use a consistent transform for validation/test
-        train_val_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
+        train_val_transform = transforms.Compose([transforms.ToTensor(), 
+                                                    transforms.Normalize(mean, std),
+                                                    transforms.RandomCrop(32, padding=4)])
 
         # Note: you can change the splits if you want :)
         split = {
