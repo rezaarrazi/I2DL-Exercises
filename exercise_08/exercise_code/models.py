@@ -32,7 +32,19 @@ class Encoder(nn.Module):
         ########################################################################
 
 
-        pass
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, 500),
+            nn.BatchNorm1d(500),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(500, 100),
+            nn.BatchNorm1d(100),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(100, latent_dim),
+            nn.BatchNorm1d(latent_dim),
+            nn.ReLU()
+        )
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -56,7 +68,17 @@ class Decoder(nn.Module):
         ########################################################################
 
 
-        pass
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, 100),
+            nn.BatchNorm1d(100),
+            nn.Dropout(p=0.5),
+            nn.ReLU(),
+            nn.Linear(100, 500),
+            nn.BatchNorm1d(500),
+            nn.Dropout(p=0.5),
+            nn.ReLU(),
+            nn.Linear(500, output_size)
+        )
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -87,7 +109,10 @@ class Autoencoder(nn.Module):
         #  of the input.                                                       #
         ########################################################################
 
-        pass
+        # encode the input into a latent representation and then decode it back
+        encoded = self.encoder(x)
+        reconstruction = self.decoder(encoded)
+        return reconstruction
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -101,7 +126,8 @@ class Autoencoder(nn.Module):
         # TODO: Define your optimizer.                                         #
         ########################################################################
 
-        pass
+        # define your optimizer
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams["learning_rate"])
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -133,7 +159,14 @@ class Autoencoder(nn.Module):
         ########################################################################
 
 
-        pass
+        self.train()
+        self.optimizer.zero_grad()
+        x = batch
+        x = x.view(x.shape[0], -1).to(self.device)  # reshape and move to device
+        reconstruction = self.forward(x)
+        loss = loss_func(reconstruction, x)
+        loss.backward()
+        self.optimizer.step()
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -157,7 +190,12 @@ class Autoencoder(nn.Module):
         ########################################################################
 
 
-        pass
+        self.eval()
+        with torch.no_grad():
+            x = batch
+            x = x.view(x.shape[0], -1).to(self.device)  # reshape and move to device
+            reconstruction = self.forward(x)
+            loss = loss_func(reconstruction, x)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -201,7 +239,7 @@ class Classifier(nn.Module):
         ########################################################################
 
 
-        pass
+        self.model = nn.Linear(20, 10)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -221,7 +259,8 @@ class Classifier(nn.Module):
         ########################################################################
 
 
-        pass
+        learning_rate = self.hparams.get("learning_rate", 0.001)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
