@@ -1,6 +1,8 @@
 """SegmentationNN"""
 import torch
 import torch.nn as nn
+from torchvision import models
+import torch.nn.functional as F
 
 class ConvLayer(nn.Module):
 
@@ -16,7 +18,17 @@ class ConvLayer(nn.Module):
         x = self.activation(x)
         return x
 
+class UpsampleLayer(nn.Module):
 
+    def __init__(self, in_channels, out_channels):
+        super(UpsampleLayer, self).__init__()
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.conv = ConvLayer(in_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        x = self.upsample(x)
+        x = self.conv(x)
+        return x
 
 class SegmentationNN(nn.Module):
 
@@ -27,7 +39,15 @@ class SegmentationNN(nn.Module):
         #                             YOUR CODE                               #
         #######################################################################
 
-        pass 
+        base_model = models.resnet18(pretrained=True)  # load pretrained ResNet18 model
+        self.feature_extractor = nn.Sequential(*list(base_model.children())[:-2])  # use the features part as feature extractor
+
+        self.decoder = nn.Sequential(
+            UpsampleLayer(512, 128),
+            UpsampleLayer(128, 64),
+            UpsampleLayer(64, 32),
+            UpsampleLayer(32, num_classes)  # additional upsample layer
+        )
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
@@ -44,8 +64,12 @@ class SegmentationNN(nn.Module):
         #                             YOUR CODE                               #
         #######################################################################
         
-        pass
-    
+        x = self.feature_extractor(x)
+        x = self.decoder(x)
+
+        # This line ensures the output size is the same as the input size
+        x = F.interpolate(x, size=(240, 240), mode='bilinear', align_corners=False)
+
         #######################################################################
         #                           END OF YOUR CODE                          #
         #######################################################################
