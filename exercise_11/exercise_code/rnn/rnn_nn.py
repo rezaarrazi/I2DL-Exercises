@@ -101,7 +101,17 @@ class LSTM(nn.Module):
         ########################################################################
 
 
-        pass
+        self.W_ii = nn.Linear(self.input_size, self.hidden_size, bias=True)
+        self.W_hi = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+
+        self.W_if = nn.Linear(self.input_size, self.hidden_size, bias=True)
+        self.W_hf = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+
+        self.W_ig = nn.Linear(self.input_size, self.hidden_size, bias=True)
+        self.W_hg = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+
+        self.W_io = nn.Linear(self.input_size, self.hidden_size, bias=True)
+        self.W_ho = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -141,7 +151,20 @@ class LSTM(nn.Module):
         ########################################################################
 
 
-        pass
+        for xt in x.unbind(0):
+            i_t = torch.sigmoid(self.W_ii(xt) + self.W_hi(h))
+            f_t = torch.sigmoid(self.W_if(xt) + self.W_hf(h))
+            g_t = torch.tanh(self.W_ig(xt) + self.W_hg(h))
+            o_t = torch.sigmoid(self.W_io(xt) + self.W_ho(h))
+
+            c = f_t * c + i_t * g_t
+            h = o_t * torch.tanh(c)
+
+            h_seq.append(h)
+            c_seq.append(c)
+
+        h_seq = torch.cat(h_seq, 0)
+        c_seq = torch.cat(c_seq, 0)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -183,7 +206,7 @@ class Embedding(nn.Module):
         ########################################################################
 
 
-        pass
+        self.weight = nn.Parameter(torch.randn(num_embeddings, embedding_dim))
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -212,7 +235,7 @@ class Embedding(nn.Module):
         ########################################################################
 
 
-        pass
+        embeddings = weight[inputs, :]
 
         ########################################################################
         #                           END OF YOUR CODE                           #

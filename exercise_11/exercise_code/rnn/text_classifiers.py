@@ -1,5 +1,6 @@
+import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from .rnn_nn import Embedding, RNN, LSTM
 
@@ -36,7 +37,14 @@ class RNNClassifier(nn.Module):
         ########################################################################
         
 
-        pass
+        self.embedding = Embedding(num_embeddings, embedding_dim, padding_idx=0)
+        if use_lstm:
+            # self.rnn = LSTM(embedding_dim, hidden_size)
+            self.rnn = nn.LSTM(embedding_dim, hidden_size, hparams['n_layers'], bidirectional=hparams['bidirectional'],
+                            dropout=hparams['dropout_rate'], batch_first=False)
+        else:
+            self.rnn = RNN(embedding_dim, hidden_size)
+        self.fc = nn.Linear(hidden_size, hparams['output_dim'])
 
         ########################################################################
         #                           END OF YOUR CODE                           #
@@ -61,10 +69,28 @@ class RNNClassifier(nn.Module):
         # pack_padded_sequence should be applied to the embedding outputs      #
         ########################################################################
 
-        pass
+        embedded = self.embedding(sequence)
+
+        if lengths is not None:
+            # If sequence lengths are provided, we pack the sequence before passing it to the RNN
+            lengths = lengths.view(-1).tolist()
+            embedded = pack_padded_sequence(embedded, lengths)
+
+        # RNN outputs
+        if self.hparams['use_lstm']:
+            rnn_out, (hidden, _) = self.rnn(embedded)
+        else:
+            rnn_out, hidden = self.rnn(embedded)
+
+        if lengths is not None:
+            # Unpack the output sequence if packed
+            rnn_out, _ = pad_packed_sequence(rnn_out)
+
+        output = self.fc(hidden.squeeze(0))
+        output = torch.sigmoid(output)
 
         ########################################################################
         #                           END OF YOUR CODE                           #
         ########################################################################
 
-        return output
+        return output.squeeze()
