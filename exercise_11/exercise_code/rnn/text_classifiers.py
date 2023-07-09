@@ -38,12 +38,12 @@ class RNNClassifier(nn.Module):
         
 
         self.embedding = Embedding(num_embeddings, embedding_dim, padding_idx=0)
+        
         if use_lstm:
-            # self.rnn = LSTM(embedding_dim, hidden_size)
-            self.rnn = nn.LSTM(embedding_dim, hidden_size, hparams['n_layers'], bidirectional=hparams['bidirectional'],
-                            dropout=hparams['dropout_rate'], batch_first=False)
+            self.rnn = LSTM(embedding_dim, hidden_size)
         else:
             self.rnn = RNN(embedding_dim, hidden_size)
+        
         self.fc = nn.Linear(hidden_size, hparams['output_dim'])
 
         ########################################################################
